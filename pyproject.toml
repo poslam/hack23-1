@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "hack23"
+version = "0.1.0"
+description = ""
+authors = ["poslam <kirden04@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.104.1"
+python-dotenv = "^1.0.0"
+alembic = "^1.12.1"
+uvicorn = "^0.24.0.post1"
+sqlalchemy = "^2.0.23"
+pyjwt = "^2.8.0"
+werkzeug = "^3.0.1"
+asyncpg = "^0.29.0"
+greenlet = "^3.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
