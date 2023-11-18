@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import TEXT, Column, Enum, Integer
+from sqlalchemy import TEXT, Boolean, Column, Enum, Integer
 
 from database.database import base
 
@@ -24,3 +24,6 @@ class User(base):
 
     password = Column(TEXT)
     type = Column(Enum(UserTypes))
+
+    car_num = Column(TEXT)
+    active_shift = Column(Boolean, default=False)

@@ -1,9 +1,9 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import jwt
-from config import SECRET_AUTH
+from config import ALGORITHM, AUTH_TOKEN_LIFE, SECRET_AUTH
 from database.models import User
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from jwt import decode
 from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,14 +17,19 @@ auth_router = APIRouter(
 )
 
 
-async def type_required(types: list,  request: Request,
+async def type_required(types: list,  auth: str = Header(None),
                         session: AsyncSession = Depends(get_session)):
     data = None
     try:
-        data = await request.json()
-        auth = data["token"]
-        data = decode(auth, SECRET_AUTH, algorithms=["HS256"])
-    except:
+        data = decode(auth, SECRET_AUTH, algorithms=[ALGORITHM])
+
+        token_expired_time = datetime.strptime(
+            data["expired"], "%Y-%m-%d %H:%M:%S.%f")
+
+        if token_expired_time < time():
+            raise Exception
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=401, detail="token is invalid")
 
     user = await session.get(User, data["id"])
@@ -39,21 +44,23 @@ async def type_required(types: list,  request: Request,
     return user
 
 
-async def login_required(auth: Request,
+async def login_required(auth: str = Header(None),
                          session: AsyncSession = Depends(get_session)):
     return await type_required([], auth, session)
 
 
-async def admin_required(auth: Request,
+async def admin_required(auth: str = Header(None),
                          session: AsyncSession = Depends(get_session)):
     return await type_required(["admin"], auth, session)
 
-async def driver_required(auth: Request,
-                         session: AsyncSession = Depends(get_session)):
+
+async def driver_required(auth: str = Header(None),
+                          session: AsyncSession = Depends(get_session)):
     return await type_required(["driver"], auth, session)
 
-async def packer_required(auth: Request,
-                         session: AsyncSession = Depends(get_session)):
+
+async def packer_required(auth: str = Header(None),
+                          session: AsyncSession = Depends(get_session)):
     return await type_required(["packer"], auth, session)
 
 
@@ -85,11 +92,12 @@ async def login(request: Request,
 
     if check_password_hash(user["password"], password):
         token = jwt.encode(
-            {"id": user["id"], "exp": time() + timedelta(days=360)},
+            {"id": user["id"], "expired": str(
+                time() + timedelta(days=int(AUTH_TOKEN_LIFE)))},
             SECRET_AUTH,
         )
 
-        return {"token": token, 
+        return {"token": token,
                 "type": user["type"],
                 "name": name_maker(user)["name"]}
 
@@ -106,6 +114,7 @@ async def signup(request: Request,
         third_name = data["third_name"]
         email = data["email"]
         type = data["type"]
+        car_num = data["car_num"]
         password = data["password"]
     except:
         raise HTTPException(status_code=400, detail="incorrect request")
@@ -127,11 +136,12 @@ async def signup(request: Request,
         "third_name": third_name,
         "email": email,
         "type": type,
+        "car_num": car_num,
         "password": generate_password_hash(password),
     }
 
     stmt = insert(User).values(user_insert)
-    
+
     try:
         await session.execute(stmt)
         await session.commit()
