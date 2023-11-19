@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import TEXT, Boolean, Column, Enum, Integer
+from sqlalchemy import TEXT, TIMESTAMP, Boolean, Column, Enum, Integer
 
 from database.database import base
 
@@ -27,3 +27,13 @@ class User(base):
 
     car_num = Column(TEXT)
     active_shift = Column(Boolean, default=False)
+    expedition = Column(Integer)
+
+
+class RefreshTokenStorage(base):
+    __tablename__ = "refresh_token_storage"
+
+    id = Column(Integer, primary_key=True)
+
+    refresh_token = Column(TEXT)
+    expired = Column(TIMESTAMP)

@@ -8,4 +8,6 @@ user_router = APIRouter(
 
 @user_router.get('/view')
 async def user_view(user=Depends(login_required)):
-    return user
+    user_view = user.__dict__
+    user_view.pop('password')
+    return user_view
