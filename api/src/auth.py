@@ -127,6 +127,7 @@ async def signup(request: Request,
         email = data["email"]
         type = data["type"]
         car_num = data["car_num"]
+        expedition = data["expedition"]
         password = data["password"]
     except:
         raise HTTPException(status_code=400, detail="incorrect request")
@@ -149,6 +150,7 @@ async def signup(request: Request,
         "email": email,
         "type": type,
         "car_num": car_num,
+        "expedition": expedition,
         "password": generate_password_hash(password),
     }
 
